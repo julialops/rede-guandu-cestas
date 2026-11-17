@@ -437,10 +437,15 @@ function renderBasketSelector() {
 }
 
 function renderProductCatalog() {
-  var html = '<div class="card"><h2>2. Escolha seus produtos</h2>';
-  if (!state.basket) {
-    html += '<p style="color:var(--stone-400);font-size:14px;">Selecione um tipo de cesta acima para começar.</p>';
-  } else {
+  var bt = state.basket ? BASKET_TYPES.find(function(b) { return b.id === state.basket; }) : null;
+  var isCooperflora = bt && (bt.id !== 'monte');
+  var cestaTxt = bt ? bt.items : 0;
+  var html = '<div class="card" style="background:var(--green-100);border-color:var(--green-200)">' +
+    '<h2 style="color:var(--green-900)">2. Escolha seus produtos</h2>' +
+    '<p style="color:var(--green-700);font-size:14px;margin-bottom:14px">' +
+      (bt ? (isCooperflora ? 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta. Os demais produtos são avulsos.' : 'Monte sua cesta escolhendo os itens que quiser. Cada item Cooperflora sai por R$ 6. Os demais produtos são avulsos.') : 'Selecione um tipo de cesta acima para começar.') +
+    '</p>';
+  if (state.basket) {
     for (var i = 0; i < state.producers.length; i++) {
       html += renderProducerSection(state.producers[i]);
     }
