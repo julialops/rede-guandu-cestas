@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rede Guandu — Cestas Agroecológicas</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-50: #eef3e8; --green-100: #dae2cc; --green-200: #c5d4ab;
+  --green-500: #5a9e3a; --green-600: #4a8c2e; --green-700: #3b7a24; --green-800: #2d6a1a; --green-900: #1e4f10;
+  --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-500: #f59e0b; --amber-600: #d97706;
+  --stone-50: #dae2cc; --stone-100: #d0d9c2; --stone-200: #c0cbb0; --stone-300: #a8b598;
+  --stone-400: #8a9a78; --stone-500: #6b7a5a; --stone-600: #4e5c40; --stone-700: #3a4530; --stone-800: #292524; --stone-900: #1c1917;
+  --red-500: #ef4444; --red-50: #fef2f2;
+  --radius: 12px; --radius-sm: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--stone-50); color: var(--stone-800); line-height: 1.5; }
+button { font-family: inherit; cursor: pointer; border: none; }
+input, select, textarea { font-family: inherit; }
+.display-font { font-family: 'Anton', sans-serif; text-transform: uppercase; letter-spacing: 0.03em; }
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.header { background: var(--green-900); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.header h1 { font-family: 'Anton', sans-serif; font-size: 20px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; }
+.header-nav { display: flex; gap: 4px; }
+.header-nav button { background: rgba(255,255,255,0.1); color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; transition: background 0.2s; }
+.header-nav button:hover, .header-nav button.active { background: rgba(255,255,255,0.25); }
+.main { flex: 1; max-width: 900px; width: 100%; margin: 0 auto; padding: 20px; }
+
+.card { background: #f4f7ee; border-radius: var(--radius); border: 1px solid var(--stone-200); padding: 20px; margin-bottom: 16px; }
+.card h2 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--stone-900); }
+.card h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--stone-700); }
+
+.banner { background: var(--green-700); color: white; border-radius: var(--radius); padding: 28px 24px; margin-bottom: 20px; position: relative; overflow: hidden; }
+.banner::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.08); pointer-events: none; }
+.banner::after { content: ''; position: absolute; bottom: -30px; left: -20px; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.06); pointer-events: none; }
+.banner h2 { font-family: 'Anton', sans-serif; font-size: 24px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; color: white; position: relative; z-index: 1; }
+.banner p { opacity: 0.9; font-size: 14px; position: relative; z-index: 1; }
+.banner .info-row { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; font-size: 13px; position: relative; z-index: 1; }
+.banner .info-item { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 20px; }
+
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.status-open { background: var(--green-100); color: var(--green-800); }
+.status-closed { background: var(--red-50); color: var(--red-500); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; }
+.status-open .status-dot { background: var(--green-500); }
+.status-closed .status-dot { background: var(--red-500); }
+
+.basket-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.basket-opt { border: 2px solid var(--stone-200); border-radius: var(--radius-sm); padding: 14px; cursor: pointer; transition: all 0.2s; text-align: center; background: #f4f7ee; }
+.basket-opt:hover { border-color: var(--green-500); background: var(--green-50); }
+.basket-opt.selected { border-color: var(--green-600); background: var(--green-50); }
+.basket-opt .name { font-family: 'Anton', sans-serif; font-weight: 400; font-size: 15px; text-transform: uppercase; letter-spacing: 0.02em; }
+.basket-opt .price { color: var(--green-700); font-weight: 700; font-size: 18px; margin-top: 4px; }
+.basket-opt .desc { font-size: 12px; color: var(--stone-500); margin-top: 2px; }
+
+.producer-section { margin-bottom: 20px; }
+.producer-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px 14px; background: var(--green-50); border-radius: var(--radius-sm); border-left: 4px solid var(--green-600); cursor: pointer; }
+.producer-header h3 { flex: 1; margin: 0; color: var(--green-800); font-family: 'Anton', sans-serif; font-size: 15px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.02em; }
+.producer-header .arrow { transition: transform 0.2s; font-size: 12px; color: var(--stone-400); }
+.producer-header .arrow.open { transform: rotate(180deg); }
+.producer-header .count { font-size: 12px; color: var(--green-600); font-weight: 500; }
+
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.product-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--stone-200); border-radius: var(--radius-sm); background: #f4f7ee; transition: all 0.15s; gap: 10px; }
+.product-item:hover { border-color: var(--green-500); }
+.product-item.in-cart { border-color: var(--green-500); background: var(--green-100); }
+.product-info { flex: 1; min-width: 0; }
+.product-name { font-size: 13px; font-weight: 500; }
+.product-price { font-size: 13px; color: var(--green-700); font-weight: 600; }
+
+.qty-controls { display: flex; align-items: center; gap: 0; border: 1px solid var(--stone-300); border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+.qty-controls button { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--stone-100); color: var(--stone-600); font-size: 16px; font-weight: 600; transition: background 0.15s; }
+.qty-controls button:hover { background: var(--stone-200); }
+.qty-controls .qty { width: 32px; text-align: center; font-size: 13px; font-weight: 600; background: #f4f7ee; border: none; border-left: 1px solid var(--stone-300); border-right: 1px solid var(--stone-300); }
+
+.cart-floating { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 90; }
+.cart-btn { background: var(--green-700); color: white; padding: 12px 24px; border-radius: 50px; font-family: 'Anton', sans-serif; font-size: 15px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.03em; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: background 0.2s; }
+.cart-btn:hover { background: var(--green-800); }
+.cart-btn .badge { background: white; color: var(--green-700); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; text-transform: none; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal { background: #f4f7ee; border-radius: 16px 16px 0 0; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 24px; transform: translateY(100%); transition: transform 0.3s; }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal h2 { font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.modal-close { background: var(--stone-100); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--stone-500); }
+
+.cart-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--stone-200); font-size: 13px; }
+.cart-item:last-child { border-bottom: none; }
+.cart-total { display: flex; justify-content: space-between; padding: 14px 0; font-size: 16px; font-weight: 700; border-top: 2px solid var(--stone-800); margin-top: 8px; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--stone-700); }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--stone-300); border-radius: var(--radius-sm); font-size: 14px; transition: border-color 0.2s; background: white; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(90,158,58,0.15); }
+
+.btn { padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; transition: all 0.2s; }
+.btn-primary { background: var(--green-700); color: white; }
+.btn-primary:hover { background: var(--green-800); }
+.btn-secondary { background: var(--stone-100); color: var(--stone-700); }
+.btn-secondary:hover { background: var(--stone-200); }
+.btn-danger { background: var(--red-500); color: white; }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.orders-list { display: flex; flex-direction: column; gap: 10px; }
+.order-card { border: 1px solid var(--stone-200); border-radius: var(--radius-sm); padding: 14px; background: #f4f7ee; }
+.order-card .order-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+.order-card .customer-name { font-weight: 600; font-size: 15px; }
+.order-card .order-total { font-weight: 700; color: var(--green-700); font-size: 15px; }
+.order-card .order-items { font-size: 12px; color: var(--stone-500); line-height: 1.6; }
+
+.summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.summary-card { background: var(--green-100); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+.summary-card .num { font-family: 'Anton', sans-serif; font-size: 28px; font-weight: 400; color: var(--green-700); }
+.summary-card .label { font-size: 12px; color: var(--stone-500); }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; }
+.tab { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; background: var(--stone-100); color: var(--stone-600); white-space: nowrap; }
+.tab:hover { background: var(--stone-200); }
+.tab.active { background: var(--green-700); color: white; }
+
+.inline-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; padding: 12px; background: var(--stone-100); border-radius: var(--radius-sm); margin-bottom: 12px; }
+.inline-form .form-group { margin-bottom: 0; flex: 1; min-width: 120px; }
+.inline-form .form-group.small { flex: 0 0 100px; }
+
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--green-900); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.empty { text-align: center; padding: 40px 20px; color: var(--stone-400); }
+.empty .icon { font-size: 40px; margin-bottom: 10px; }
+.empty p { font-size: 14px; }
+
+.loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--stone-200); border-top-color: var(--green-600); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-screen p { color: var(--stone-500); font-size: 14px; }
+.sync-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--stone-400); padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.1); }
+.sync-indicator.syncing { color: var(--amber-500); }
+.online-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.online-badge.online { background: rgba(90,158,58,0.2); color: #5a9e3a; }
+.online-badge.offline { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+
+@media (max-width: 600px) {
+  .header-inner { flex-direction: column; gap: 8px; }
+  .product-grid { grid-template-columns: 1fr; }
+  .basket-options { grid-template-columns: 1fr; }
+  .summary-row { grid-template-columns: repeat(2, 1fr); }
+  .inline-form { flex-direction: column; }
+  .inline-form .form-group.small { flex: 1; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+// ===== CONFIG =====
+var API_URL = 'https://script.google.com/macros/s/AKfycbyM1NvlXR4l9P6J6iy_WoPJoEZ1zusmTKrdMjJjm_JjiD8JfjiQxLyVvcc6TGH0G1X-/exec';
+
+var BASKET_TYPES = [
+  { id: 'pequena', name: 'Cesta Pequena', items: 5, price: 39, desc: '5 itens da Cooperflora' },
+  { id: 'grande', name: 'Cesta Grande', items: 8, price: 51, desc: '8 itens da Cooperflora' },
+  { id: 'monte', name: 'Monte sua Cesta', items: 0, price: 6, desc: 'R$ 6,00 por item' },
+  { id: 'promo2p', name: '2 Cestas Pequenas', items: 10, price: 66, desc: 'De R$ 78 por R$ 66' },
+  { id: 'promo2g', name: '2 Cestas Grandes', items: 16, price: 90, desc: 'De R$ 102 por R$ 90' },
+];
+
+var DEFAULT_PRODUCERS = [
+  { id: 'cooperflora', name: 'Cooperflora', products: [
+    {id:'cf01',name:'Alface Crespa',price:4},{id:'cf02',name:'Alface Lisa',price:4},{id:'cf03',name:'Alface Roxa',price:5},
+    {id:'cf04',name:'Alface Americana',price:5},{id:'cf05',name:'Rucula',price:4},{id:'cf06',name:'Agriao',price:4},
+    {id:'cf07',name:'Couve Manteiga',price:4},{id:'cf08',name:'Espinafre',price:5},{id:'cf09',name:'Chicoria',price:4},
+    {id:'cf10',name:'Almeirão',price:4},{id:'cf11',name:'Salsinha',price:3},{id:'cf12',name:'Cebolinha',price:3},
+    {id:'cf13',name:'Coentro',price:3},{id:'cf14',name:'Manjericão',price:3},{id:'cf15',name:'Hortelã',price:3},
+    {id:'cf16',name:'Tomate',price:8},{id:'cf17',name:'Tomate Cereja',price:7},{id:'cf18',name:'Pepino',price:5},
+    {id:'cf19',name:'Abobrinha Verde',price:6},{id:'cf20',name:'Abobrinha Italiana',price:6},{id:'cf21',name:'Berinjela',price:7},
+    {id:'cf22',name:'Pimentão Verde',price:6},{id:'cf23',name:'Pimentão Vermelho',price:8},{id:'cf24',name:'Quiabo',price:7},
+    {id:'cf25',name:'Jiló',price:6},{id:'cf26',name:'Vagem',price:8},{id:'cf27',name:'Milho Verde (un)',price:3},
+    {id:'cf28',name:'Mandioca (kg)',price:8},{id:'cf29',name:'Batata-doce (kg)',price:7},{id:'cf30',name:'Inhame (kg)',price:9},
+    {id:'cf31',name:'Cenoura (kg)',price:7},{id:'cf32',name:'Beterraba (kg)',price:7},{id:'cf33',name:'Chuchu',price:4},
+    {id:'cf34',name:'Abóbora Cabotiá (kg)',price:6},{id:'cf35',name:'Abóbora Seca (kg)',price:5},
+    {id:'cf36',name:'Banana Nanica (dz)',price:6},{id:'cf37',name:'Banana Prata (dz)',price:8},
+    {id:'cf38',name:'Limão Tahiti (kg)',price:5},{id:'cf39',name:'Maracujá (kg)',price:10},
+    {id:'cf40',name:'Mamão Formosa (un)',price:8},{id:'cf41',name:'Goiaba (kg)',price:8},
+  ]},
+  { id: 'cajan', name: 'CAJAN - Panificados', products: [
+    {id:'cj01',name:'Pão Integral',price:10},{id:'cj02',name:'Pão de Forma Integral',price:12},
+    {id:'cj03',name:'Broa de Milho',price:8},{id:'cj04',name:'Bolo de Cenoura',price:15},
+    {id:'cj05',name:'Bolo de Fubá',price:14},{id:'cj06',name:'Bolo de Banana',price:14},
+    {id:'cj07',name:'Biscoito de Polvilho',price:10},{id:'cj08',name:'Granola Artesanal (500g)',price:18},
+    {id:'cj09',name:'Cookie Integral',price:12},{id:'cj10',name:'Rosquinha de Nata',price:10},
+  ]},
+  { id: 'sitio_boa_vista', name: 'Sítio Boa Vista - Laticínios', products: [
+    {id:'bv01',name:'Queijo Minas Frescal',price:20},{id:'bv02',name:'Queijo Meia Cura',price:28},
+    {id:'bv03',name:'Requeijão Artesanal',price:15},{id:'bv04',name:'Iogurte Natural (500ml)',price:12},
+    {id:'bv05',name:'Manteiga (200g)',price:16},{id:'bv06',name:'Doce de Leite (300g)',price:14},
+  ]},
+  { id: 'mel_flores', name: 'Mel & Flores - Apiário', products: [
+    {id:'mf01',name:'Mel Silvestre (500g)',price:30},{id:'mf02',name:'Mel Silvestre (1kg)',price:55},
+    {id:'mf03',name:'Própolis (30ml)',price:25},{id:'mf04',name:'Pólen (100g)',price:20},
+    {id:'mf05',name:'Favos de Mel (200g)',price:28},
+  ]},
+  { id: 'raizes_terra', name: 'Raízes da Terra - Processados', products: [
+    {id:'rt01',name:'Molho de Tomate (500ml)',price:12},{id:'rt02',name:'Geleia de Goiaba (300g)',price:14},
+    {id:'rt03',name:'Geleia de Jabuticaba (300g)',price:16},{id:'rt04',name:'Conserva de Legumes',price:12},
+    {id:'rt05',name:'Farinha de Mandioca (1kg)',price:10},{id:'rt06',name:'Polvilho Azedo (500g)',price:9},
+    {id:'rt07',name:'Açúcar Mascavo (500g)',price:10},{id:'rt08',name:'Café Torrado (500g)',price:22},
+  ]},
+  { id: 'horta_milton', name: 'Horta Milton Santos', products: [
+    {id:'hm01',name:'Mix de Microverdes',price:8},{id:'hm02',name:'Broto de Alfafa',price:7},
+    {id:'hm03',name:'Broto de Feijão',price:6},{id:'hm04',name:'Ora-pro-nóbis (maço)',price:5},
+    {id:'hm05',name:'Taioba (maço)',price:5},{id:'hm06',name:'Bertalha (maço)',price:5},
+    {id:'hm07',name:'Peixinho da Horta',price:6},{id:'hm08',name:'Capuchinha (flores)',price:8},
+  ]},
+  { id: 'granja_caipira', name: 'Granja Caipira', products: [
+    {id:'gc01',name:'Ovos Caipira (dz)',price:16},{id:'gc02',name:'Ovos de Codorna (30un)',price:14},
+    {id:'gc03',name:'Frango Caipira (inteiro)',price:40},{id:'gc04',name:'Frango Caipira (peito kg)',price:35},
+  ]},
+];
+
+// ===== STATE =====
+var state = {
+  view: 'consumer',
+  adminTab: 'pedidos',
+  basket: null,
+  cart: {},
+  openProducers: {},
+  cycleOpen: true,
+  cycleName: 'Cestas da Semana',
+  producers: DEFAULT_PRODUCERS,
+  orders: [],
+  adminAuth: false,
+  adminPin: '',
+  loading: false,
+  syncing: false,
+  apiOnline: false,
+};
+
+// ===== API =====
+function apiGet() {
+  return fetch(API_URL + '?action=getAll')
+    .then(function(res) { return res.json(); });
+}
+
+function apiPost(body) {
+  state.syncing = true;
+  render();
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body),
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) { state.syncing = false; return data; })
+  .catch(function(e) { state.syncing = false; showToast('Erro ao salvar. Dados salvos localmente.'); saveLocal(); return { ok: false }; });
+}
+
+function loadFromApi() {
+  try {
+    apiGet().then(function(data) {
+      if (data && data.producers && data.producers.length > 0) {
+        state.producers = data.producers;
+        state.orders = data.orders || [];
+        state.cycleOpen = data.config ? data.config.cycleOpen === 'true' : true;
+        state.cycleName = (data.config && data.config.cycleName) ? data.config.cycleName : 'Cestas da Semana';
+        state.adminPin = (data.config && data.config.adminPin) ? data.config.adminPin : '';
+        state.apiOnline = true;
+        saveLocal();
+      }
+      render();
+    }).catch(function() {
+      state.apiOnline = false;
+      loadLocal();
+      render();
+    });
+  } catch(e) {
+    state.apiOnline = false;
+    loadLocal();
+    render();
+  }
+}
+
+function saveLocal() {
+  try {
+    localStorage.setItem('rg_producers', JSON.stringify(state.producers));
+    localStorage.setItem('rg_orders', JSON.stringify(state.orders));
+    localStorage.setItem('rg_config', JSON.stringify({ cycleOpen: state.cycleOpen, cycleName: state.cycleName, adminPin: state.adminPin }));
+  } catch(e) {}
+}
+
+function loadLocal() {
+  try {
+    var p = localStorage.getItem('rg_producers');
+    var o = localStorage.getItem('rg_orders');
+    var c = localStorage.getItem('rg_config');
+    if (p) state.producers = JSON.parse(p);
+    if (o) state.orders = JSON.parse(o);
+    if (c) { var cfg = JSON.parse(c); state.cycleOpen = cfg.cycleOpen; state.cycleName = cfg.cycleName; state.adminPin = cfg.adminPin || ''; }
+  } catch(e) {}
+}
+
+// ===== HELPERS =====
+function fmt(v) { return 'R$ ' + v.toFixed(2).replace('.', ','); }
+
+function getCartTotal() {
+  var total = 0;
+  var cooperfloraProds = [];
+  var cp = state.producers.find(function(p) { return p.id === 'cooperflora'; });
+  if (cp) cooperfloraProds = cp.products.map(function(p) { return p.id; });
+  var cooperfloraCount = 0;
+  var keys = Object.keys(state.cart);
+  for (var i = 0; i < keys.length; i++) {
+    var pid = keys[i]; var qty = state.cart[pid];
+    if (qty <= 0) continue;
+    var prod = findProduct(pid);
+    if (!prod) continue;
+    if (cooperfloraProds.indexOf(pid) >= 0) cooperfloraCount += qty;
+    else total += prod.price * qty;
+  }
+  if (state.basket) {
+    var bt = BASKET_TYPES.find(function(b) { return b.id === state.basket; });
+    if (bt) {
+      if (bt.id === 'monte') total += cooperfloraCount * 6;
+      else total += bt.price;
+    }
+  }
+  return total;
+}
+
+function getCartItemCount() {
+  var s = 0; var keys = Object.keys(state.cart);
+  for (var i = 0; i < keys.length; i++) s += state.cart[keys[i]];
+  return s;
+}
+
+function findProduct(pid) {
+  for (var i = 0; i < state.producers.length; i++) {
+    var found = state.producers[i].products.find(function(pr) { return pr.id === pid; });
+    if (found) return found;
+  }
+  return null;
+}
+
+function findProducerOfProduct(pid) {
+  for (var i = 0; i < state.producers.length; i++) {
+    if (state.producers[i].products.find(function(pr) { return pr.id === pid; })) return state.producers[i];
+  }
+  return null;
+}
+
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function openModal(html) {
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function genId() { return 'p' + Date.now() + Math.random().toString(36).slice(2, 6); }
+
+// ===== RENDER =====
+function render() {
+  var app = document.getElementById('app');
+  if (state.loading) {
+    app.innerHTML = renderHeader() + '<div class="main"><div class="loading-screen"><div class="spinner"></div><p>Carregando dados...</p></div></div>';
+    return;
+  }
+  app.innerHTML = renderHeader() + '<div class="main">' + (state.view === 'consumer' ? renderConsumer() : renderAdmin()) + '</div>';
+  if (state.view === 'consumer' && getCartItemCount() > 0) {
+    app.innerHTML += renderCartFloating();
+  }
+}
+
+function renderHeader() {
+  var syncBadge = state.syncing ? '<span class="sync-indicator syncing">Salvando...</span>' : '';
+  var onlineBadge = state.apiOnline ? '<span class="online-badge online">online</span>' : '<span class="online-badge offline">local</span>';
+  return '<div class="header"><div class="header-inner">' +
+    '<h1>Rede Guandu ' + syncBadge + ' ' + onlineBadge + '</h1>' +
+    '<div class="header-nav">' +
+      '<button class="' + (state.view==='consumer'?'active':'') + '" data-action="view-consumer">Pedir</button>' +
+      '<button class="' + (state.view==='admin'?'active':'') + '" data-action="enter-admin">Gestão</button>' +
+    '</div>' +
+  '</div></div>';
+}
+
+// ===== CONSUMER VIEW =====
+function renderConsumer() {
+  if (!state.cycleOpen) {
+    return '<div class="banner" style="background:var(--stone-600)">' +
+      '<h2>Pedidos fechados</h2>' +
+      '<p>O ciclo atual está fechado para novos pedidos. Fique de olho — o próximo abre em breve!</p>' +
+    '</div>';
+  }
+  return renderBanner() + renderBasketSelector() + renderProductCatalog();
+}
+
+function renderBanner() {
+  return '<div class="banner">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:relative;z-index:1">' +
+      '<h2>' + state.cycleName + '</h2>' +
+      '<span class="status-badge status-open"><span class="status-dot"></span>Pedidos abertos</span>' +
+    '</div>' +
+    '<p>Cestas agroecológicas — sem veneno, da época, preço justo. Direto de quem planta.</p>' +
+    '<div class="info-row">' +
+      '<span class="info-item">ADUSP — ESALQ-USP</span>' +
+      '<span class="info-item">Terças 16h–20h</span>' +
+      '<span class="info-item">PIX ou cartão</span>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderBasketSelector() {
+  var opts = '';
+  for (var i = 0; i < BASKET_TYPES.length; i++) {
+    var b = BASKET_TYPES[i];
+    opts += '<div class="basket-opt ' + (state.basket===b.id?'selected':'') + '" data-action="select-basket" data-basket="' + b.id + '">' +
+      '<div class="name">' + b.name + '</div>' +
+      '<div class="price">' + (b.id==='monte' ? fmt(b.price)+'/item' : fmt(b.price)) + '</div>' +
+      '<div class="desc">' + b.desc + '</div>' +
+    '</div>';
+  }
+  return '<div class="card"><h2>1. Escolha sua cesta (Cooperflora)</h2><div class="basket-options">' + opts + '</div></div>';
+}
+
+function renderProductCatalog() {
+  var html = '<div class="card"><h2>2. Escolha seus produtos</h2>';
+  if (!state.basket) {
+    html += '<p style="color:var(--stone-400);font-size:14px;">Selecione um tipo de cesta acima para começar.</p>';
+  } else {
+    for (var i = 0; i < state.producers.length; i++) {
+      html += renderProducerSection(state.producers[i]);
+    }
+  }
+  return html + '</div>';
+}
+
+function renderProducerSection(producer) {
+  var isOpen = state.openProducers[producer.id] !== false;
+  var cartCount = 0;
+  for (var i = 0; i < producer.products.length; i++) cartCount += (state.cart[producer.products[i].id] || 0);
+  var countBadge = cartCount > 0 ? '<span class="count">' + cartCount + ' item' + (cartCount>1?'s':'') + '</span>' : '';
+  var html = '<div class="producer-section">' +
+    '<div class="producer-header" data-action="toggle-producer" data-producer="' + producer.id + '">' +
+      '<h3>' + producer.name + '</h3>' + countBadge +
+      '<span class="arrow ' + (isOpen?'open':'') + '">&#9660;</span>' +
+    '</div>';
+  if (isOpen) {
+    html += '<div class="product-grid">';
+    for (var i = 0; i < producer.products.length; i++) {
+      var p = producer.products[i];
+      var qty = state.cart[p.id] || 0;
+      html += '<div class="product-item ' + (qty>0?'in-cart':'') + '">' +
+        '<div class="product-info"><div class="product-name">' + p.name + '</div><div class="product-price">' + fmt(p.price) + '</div></div>' +
+        '<div class="qty-controls">' +
+          '<button data-action="qty-minus" data-pid="' + p.id + '">−</button>' +
+          '<span class="qty">' + qty + '</span>' +
+          '<button data-action="qty-plus" data-pid="' + p.id + '">+</button>' +
+        '</div>' +
+      '</div>';
+    }
+    html += '</div>';
+  }
+  return html + '</div>';
+}
+
+function renderCartFloating() {
+  return '<div class="cart-floating">' +
+    '<button class="cart-btn" data-action="open-cart">' +
+      '<span class="badge">' + getCartItemCount() + '</span>' +
+      'Meu Pedido — ' + fmt(getCartTotal()) +
+    '</button>' +
+  '</div>';
+}
+
+function openCartModal() {
+  var items = '';
+  var keys = Object.keys(state.cart);
+  for (var i = 0; i < keys.length; i++) {
+    var pid = keys[i]; var qty = state.cart[pid];
+    if (qty <= 0) continue;
+    var prod = findProduct(pid);
+    if (!prod) continue;
+    var producer = findProducerOfProduct(pid);
+    items += '<div class="cart-item">' +
+      '<div><div style="font-weight:500">' + prod.name + ' × ' + qty + '</div><div style="font-size:11px;color:var(--stone-400)">' + (producer?producer.name:'') + '</div></div>' +
+      '<div style="font-weight:600">' + fmt(prod.price*qty) + '</div>' +
+    '</div>';
+  }
+  if (!items) items = '<div class="empty"><p>Seu pedido está vazio</p></div>';
+  var bt = BASKET_TYPES.find(function(b) { return b.id === state.basket; });
+  var basketLabel = bt ? bt.name + ' — ' + fmt(bt.price) : '';
+  openModal(
+    '<h2>Seu Pedido <button class="modal-close" data-action="close-modal">✕</button></h2>' +
+    (bt ? '<div style="padding:8px 12px;background:var(--green-50);border-radius:8px;margin-bottom:12px;font-size:13px;"><strong>Cesta:</strong> ' + basketLabel + '</div>' : '') +
+    items +
+    '<div class="cart-total"><span>Total</span><span>' + fmt(getCartTotal()) + '</span></div>' +
+    '<div style="margin-top:16px">' +
+      '<div class="form-group"><label>Seu nome *</label><input id="customer-name" placeholder="Nome completo" /></div>' +
+      '<div class="form-group"><label>Telefone *</label><input id="customer-phone" placeholder="(19) 99999-0000" /></div>' +
+      '<button class="btn btn-primary btn-full" id="btn-submit" data-action="submit-order" style="margin-top:8px">Confirmar Pedido</button>' +
+    '</div>');
+}
+
+function submitOrder() {
+  var name = document.getElementById('customer-name').value.trim();
+  var phone = document.getElementById('customer-phone').value.trim();
+  if (!name || !phone) { showToast('Preencha nome e telefone!'); return; }
+  var btn = document.getElementById('btn-submit');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  var items = [];
+  var keys = Object.keys(state.cart);
+  for (var i = 0; i < keys.length; i++) {
+    var pid = keys[i]; var qty = state.cart[pid];
+    if (qty <= 0) continue;
+    var prod = findProduct(pid);
+    var producer = findProducerOfProduct(pid);
+    if (prod) items.push({ productId: pid, name: prod.name, price: prod.price, qty: qty, producer: producer ? producer.name : '' });
+  }
+  var order = {
+    id: genId(), date: new Date().toISOString(), customerName: name, customerPhone: phone,
+    basket: state.basket, basketName: (BASKET_TYPES.find(function(b) { return b.id === state.basket; }) || {}).name || '',
+    items: items, total: getCartTotal(),
+  };
+
+  state.orders.push(order);
+  saveLocal();
+
+  if (state.apiOnline) {
+    apiPost({ action: 'addOrder', data: order }).then(function(result) {
+      if (!result.ok) showToast('Pedido salvo localmente (sem conexão).');
+    });
+  }
+
+  state.cart = {};
+  state.basket = null;
+  closeModal();
+  render();
+  showToast('Pedido enviado com sucesso!');
+}
+
+// ===== ADMIN VIEW =====
+function renderAdmin() {
+  var tabs = [
+    { id: 'pedidos', label: 'Pedidos (' + state.orders.length + ')' },
+    { id: 'produtores', label: 'Produtores' },
+    { id: 'config', label: 'Configurações' },
+  ];
+  var tabsHtml = '';
+  for (var i = 0; i < tabs.length; i++) {
+    var t = tabs[i];
+    tabsHtml += '<button class="tab ' + (state.adminTab===t.id?'active':'') + '" data-action="admin-tab" data-tab="' + t.id + '">' + t.label + '</button>';
+  }
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+    '<div class="tabs" style="margin-bottom:0">' + tabsHtml + '</div>' +
+    '<button class="btn btn-secondary" style="font-size:12px;padding:6px 12px" data-action="refresh-data">Atualizar</button>' +
+  '</div>';
+  if (state.adminTab === 'pedidos') html += renderAdminOrders();
+  else if (state.adminTab === 'produtores') html += renderAdminProducers();
+  else if (state.adminTab === 'config') html += renderAdminConfig();
+  return html;
+}
+
+function renderAdminOrders() {
+  if (state.orders.length === 0) {
+    return '<div class="card"><div class="empty"><div class="icon">&#128203;</div><p>Nenhum pedido ainda neste ciclo.</p></div></div>';
+  }
+  var totalRevenue = 0; var totalItems = 0;
+  var byProducer = {};
+  for (var i = 0; i < state.orders.length; i++) {
+    var o = state.orders[i];
+    totalRevenue += o.total;
+    for (var j = 0; j < o.items.length; j++) {
+      totalItems += o.items[j].qty;
+      var key = o.items[j].producer || 'Sem produtor';
+      if (!byProducer[key]) byProducer[key] = 0;
+      byProducer[key] += o.items[j].price * o.items[j].qty;
+    }
+  }
+  var html = '<div class="summary-row">' +
+    '<div class="summary-card"><div class="num">' + state.orders.length + '</div><div class="label">Pedidos</div></div>' +
+    '<div class="summary-card"><div class="num">' + totalItems + '</div><div class="label">Itens</div></div>' +
+    '<div class="summary-card"><div class="num">' + fmt(totalRevenue) + '</div><div class="label">Total</div></div>' +
+  '</div>';
+  html += '<div class="card" style="margin-bottom:16px"><h3>Resumo por produtor</h3>';
+  var prodKeys = Object.keys(byProducer);
+  for (var i = 0; i < prodKeys.length; i++) {
+    html += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid var(--stone-200)"><span>' + prodKeys[i] + '</span><span style="font-weight:600">' + fmt(byProducer[prodKeys[i]]) + '</span></div>';
+  }
+  html += '</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+    '<h2 style="margin:0">Pedidos</h2>' +
+    '<button class="btn btn-secondary" data-action="export-orders">Exportar CSV</button>' +
+  '</div><div class="orders-list">';
+  for (var i = state.orders.length - 1; i >= 0; i--) {
+    var order = state.orders[i];
+    var date = new Date(order.date).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    var itemsStr = order.items.map(function(it) { return it.name + ' ×' + it.qty; }).join(' · ');
+    html += '<div class="order-card">' +
+      '<div class="order-header"><div><div class="customer-name">' + order.customerName + '</div><div style="font-size:12px;color:var(--stone-400)">' + order.customerPhone + ' · ' + date + '</div></div>' +
+      '<div class="order-total">' + fmt(order.total) + '</div></div>' +
+      '<div style="font-size:12px;color:var(--green-700);margin-bottom:4px;font-weight:500">' + (order.basketName||'Avulso') + '</div>' +
+      '<div class="order-items">' + itemsStr + '</div>' +
+      '<div style="margin-top:8px;text-align:right"><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" data-action="delete-order" data-order-id="' + order.id + '">Remover</button></div>' +
+    '</div>';
+  }
+  return html + '</div>';
+}
+
+function renderAdminProducers() {
+  var html = '<div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">' +
+    '<h2 style="margin:0">Produtores e Produtos</h2>' +
+    '<button class="btn btn-primary" data-action="add-producer">+ Novo Produtor</button>' +
+  '</div>';
+  for (var i = 0; i < state.producers.length; i++) {
+    var producer = state.producers[i];
+    html += '<div class="card">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+        '<h3 style="margin:0">' + producer.name + ' <span style="font-weight:400;color:var(--stone-400);font-size:12px">(' + producer.products.length + ' produtos)</span></h3>' +
+        '<div style="display:flex;gap:4px">' +
+          '<button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" data-action="rename-producer" data-producer="' + producer.id + '">Renomear</button>' +
+          '<button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;color:var(--red-500)" data-action="remove-producer" data-producer="' + producer.id + '">Remover</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="inline-form">' +
+        '<div class="form-group"><label>Produto</label><input id="new-prod-name-' + producer.id + '" placeholder="Nome do produto" /></div>' +
+        '<div class="form-group small"><label>Preço (R$)</label><input id="new-prod-price-' + producer.id + '" type="number" step="0.01" placeholder="0,00" /></div>' +
+        '<button class="btn btn-primary" style="align-self:end" data-action="add-product" data-producer="' + producer.id + '">Adicionar</button>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:4px">';
+    for (var j = 0; j < producer.products.length; j++) {
+      var p = producer.products[j];
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--stone-100);border-radius:6px;font-size:13px">' +
+        '<span>' + p.name + '</span>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="font-weight:600;color:var(--green-700)">' + fmt(p.price) + '</span>' +
+          '<button style="background:none;color:var(--stone-400);font-size:16px;padding:2px 6px" data-action="remove-product" data-producer="' + producer.id + '" data-product="' + p.id + '">✕</button>' +
+        '</div>' +
+      '</div>';
+    }
+    html += '</div></div>';
+  }
+  return html;
+}
+
+function renderAdminConfig() {
+  return '<div class="card">' +
+    '<h2>Configurações do Ciclo</h2>' +
+    '<div class="form-group">' +
+      '<label>Nome do ciclo</label>' +
+      '<input id="cycle-name" value="' + state.cycleName + '" />' +
+    '</div>' +
+    '<button class="btn btn-secondary" style="margin-top:4px" data-action="save-cycle-name">Salvar nome</button>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:' + (state.cycleOpen?'var(--green-100)':'var(--red-50)') + ';border-radius:8px;margin-top:12px">' +
+      '<div>' +
+        '<div style="font-weight:600;font-size:14px">' + (state.cycleOpen ? 'Pedidos abertos' : 'Pedidos fechados') + '</div>' +
+        '<div style="font-size:12px;color:var(--stone-500)">' + (state.cycleOpen ? 'Consumidores podem fazer pedidos' : 'Formulário desabilitado') + '</div>' +
+      '</div>' +
+      '<button class="btn ' + (state.cycleOpen?'btn-danger':'btn-primary') + '" data-action="toggle-cycle">' + (state.cycleOpen?'Fechar pedidos':'Abrir pedidos') + '</button>' +
+    '</div>' +
+  '</div>' +
+  '<div class="card">' +
+    '<h2>Novo Ciclo</h2>' +
+    '<p style="font-size:13px;color:var(--stone-500);margin-bottom:12px">Limpar todos os pedidos para iniciar um novo ciclo de entregas.</p>' +
+    '<button class="btn btn-danger" data-action="new-cycle">Iniciar novo ciclo (apagar pedidos)</button>' +
+  '</div>' +
+  '<div class="card">' +
+    '<h2>Senha de acesso</h2>' +
+    '<p style="font-size:13px;color:var(--stone-500);margin-bottom:12px">Altere a senha usada para acessar esta área de gestão.</p>' +
+    '<button class="btn btn-secondary" data-action="change-pin">Alterar senha</button>' +
+  '</div>' +
+  '<div class="card">' +
+    '<h2>Sobre</h2>' +
+    '<p style="font-size:13px;color:var(--stone-500);line-height:1.7">' +
+      '<strong>Rede Guandu</strong> — Grupo de Consumo Responsável<br>' +
+      'Cestas agroecológicas em parceria com a <strong>Cooperflora</strong>, <strong>CAJAN</strong> e produtores locais.<br><br>' +
+      '<strong>Retirada:</strong> ADUSP — ESALQ-USP, Terças 16h às 20h<br>' +
+      '<strong>Pagamento:</strong> PIX ou cartão<br>' +
+      '<strong>Contato:</strong> (19) 98210-8204 | @redeguandu<br><br>' +
+      '<span style="font-size:11px;color:var(--stone-400)">Dados sincronizados com Google Sheets quando há conexão.</span>' +
+    '</p>' +
+  '</div>';
+}
+
+// ===== ADMIN AUTH =====
+function enterAdmin() {
+  if (state.view === 'admin') return;
+  if (state.adminAuth) { state.view = 'admin'; render(); return; }
+  if (!state.adminPin) {
+    openModal(
+      '<h2>Criar senha de gestão <button class="modal-close" data-action="close-modal">✕</button></h2>' +
+      '<p style="font-size:13px;color:var(--stone-500);margin-bottom:14px">Defina uma senha para proteger a área de gestão.</p>' +
+      '<div class="form-group"><label>Nova senha</label><input id="new-pin" type="password" placeholder="Digite uma senha" /></div>' +
+      '<div class="form-group"><label>Confirme</label><input id="confirm-pin" type="password" placeholder="Repita a senha" /></div>' +
+      '<button class="btn btn-primary btn-full" data-action="setup-pin">Criar senha e entrar</button>');
+  } else {
+    openModal(
+      '<h2>Área de Gestão <button class="modal-close" data-action="close-modal">✕</button></h2>' +
+      '<p style="font-size:13px;color:var(--stone-500);margin-bottom:14px">Digite a senha para acessar.</p>' +
+      '<div class="form-group"><label>Senha</label><input id="admin-pin" type="password" placeholder="Senha" /></div>' +
+      '<button class="btn btn-primary btn-full" data-action="check-pin">Entrar</button>');
+    setTimeout(function() { var el = document.getElementById('admin-pin'); if(el) el.focus(); }, 100);
+  }
+}
+
+// ===== EVENT DELEGATION =====
+document.addEventListener('click', function(e) {
+  var target = e.target.closest('[data-action]');
+  if (!target) {
+    // Check if click was on modal overlay background
+    if (e.target.id === 'modal-overlay') closeModal();
+    return;
+  }
+  var action = target.getAttribute('data-action');
+
+  switch(action) {
+    case 'view-consumer':
+      state.view = 'consumer'; render(); break;
+    case 'enter-admin':
+      enterAdmin(); break;
+    case 'select-basket':
+      state.basket = target.getAttribute('data-basket'); render(); break;
+    case 'toggle-producer':
+      var pid = target.getAttribute('data-producer');
+      state.openProducers[pid] = state.openProducers[pid] === false ? true : false;
+      render(); break;
+    case 'qty-plus':
+      var id = target.getAttribute('data-pid');
+      state.cart[id] = (state.cart[id] || 0) + 1;
+      render(); break;
+    case 'qty-minus':
+      var id = target.getAttribute('data-pid');
+      var c = (state.cart[id] || 0) - 1;
+      if (c <= 0) delete state.cart[id]; else state.cart[id] = c;
+      render(); break;
+    case 'open-cart':
+      openCartModal(); break;
+    case 'close-modal':
+      closeModal(); break;
+    case 'submit-order':
+      submitOrder(); break;
+    case 'admin-tab':
+      state.adminTab = target.getAttribute('data-tab'); render(); break;
+    case 'refresh-data':
+      showToast('Atualizando...'); loadFromApi(); break;
+    case 'export-orders':
+      exportOrders(); break;
+    case 'delete-order':
+      deleteOrder(target.getAttribute('data-order-id')); break;
+    case 'add-producer':
+      addProducerPrompt(); break;
+    case 'rename-producer':
+      renameProducer(target.getAttribute('data-producer')); break;
+    case 'remove-producer':
+      removeProducer(target.getAttribute('data-producer')); break;
+    case 'add-product':
+      addProduct(target.getAttribute('data-producer')); break;
+    case 'remove-product':
+      removeProduct(target.getAttribute('data-producer'), target.getAttribute('data-product')); break;
+    case 'save-cycle-name':
+      saveCycleName(); break;
+    case 'toggle-cycle':
+      toggleCycle(); break;
+    case 'new-cycle':
+      newCycle(); break;
+    case 'change-pin':
+      changeAdminPin(); break;
+    case 'setup-pin':
+      setupPin(); break;
+    case 'check-pin':
+      checkPin(); break;
+    case 'confirm-change-pin':
+      confirmChangePin(); break;
+  }
+});
+
+// Enter key on pin input
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    var el = document.getElementById('admin-pin');
+    if (el && document.activeElement === el) checkPin();
+  }
+});
+
+// ===== ADMIN ACTIONS =====
+function deleteOrder(id) {
+  state.orders = state.orders.filter(function(o) { return o.id !== id; });
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'deleteOrder', id: id });
+  render(); showToast('Pedido removido');
+}
+
+function toggleCycle() {
+  state.cycleOpen = !state.cycleOpen;
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'updateConfig', key: 'cycleOpen', value: String(state.cycleOpen) });
+  render(); showToast(state.cycleOpen ? 'Pedidos abertos!' : 'Pedidos fechados');
+}
+
+function saveCycleName() {
+  var name = document.getElementById('cycle-name').value.trim();
+  if (!name) return;
+  state.cycleName = name;
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'updateConfig', key: 'cycleName', value: name });
+  render(); showToast('Nome do ciclo salvo!');
+}
+
+function newCycle() {
+  if (!confirm('Tem certeza? Isso apagará todos os pedidos do ciclo atual.')) return;
+  state.orders = [];
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'clearOrders' });
+  render(); showToast('Novo ciclo iniciado');
+}
+
+function addProducerPrompt() {
+  var name = prompt('Nome do novo produtor:');
+  if (!name) return;
+  var data = { id: genId(), name: name, products: [] };
+  state.producers.push(data);
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'addProducer', data: { id: data.id, name: data.name } });
+  render(); showToast('Produtor adicionado');
+}
+
+function renameProducer(id) {
+  var p = state.producers.find(function(x) { return x.id === id; });
+  if (!p) return;
+  var name = prompt('Novo nome:', p.name);
+  if (!name) return;
+  p.name = name;
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'renameProducer', id: id, name: name });
+  render();
+}
+
+function removeProducer(id) {
+  if (!confirm('Remover este produtor e todos os seus produtos?')) return;
+  state.producers = state.producers.filter(function(p) { return p.id !== id; });
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'removeProducer', id: id });
+  render(); showToast('Produtor removido');
+}
+
+function addProduct(producerId) {
+  var nameEl = document.getElementById('new-prod-name-' + producerId);
+  var priceEl = document.getElementById('new-prod-price-' + producerId);
+  var name = nameEl.value.trim();
+  var price = parseFloat(priceEl.value);
+  if (!name || isNaN(price) || price <= 0) { showToast('Preencha nome e preço'); return; }
+  var data = { id: genId(), name: name, price: price };
+  var producer = state.producers.find(function(p) { return p.id === producerId; });
+  if (producer) producer.products.push(data);
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'addProduct', producerId: producerId, data: data });
+  render(); showToast('Produto adicionado');
+}
+
+function removeProduct(producerId, productId) {
+  var producer = state.producers.find(function(p) { return p.id === producerId; });
+  if (producer) producer.products = producer.products.filter(function(p) { return p.id !== productId; });
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'removeProduct', producerId: producerId, productId: productId });
+  render();
+}
+
+function exportOrders() {
+  if (state.orders.length === 0) { showToast('Nenhum pedido'); return; }
+  var csv = 'Nome,Telefone,Data,Cesta,Itens,Total\n';
+  for (var i = 0; i < state.orders.length; i++) {
+    var o = state.orders[i];
+    var date = new Date(o.date).toLocaleDateString('pt-BR');
+    var items = o.items.map(function(it) { return it.name + ' x' + it.qty; }).join('; ');
+    csv += '"' + o.customerName + '","' + o.customerPhone + '","' + date + '","' + o.basketName + '","' + items + '","' + o.total.toFixed(2) + '"\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'pedidos_' + state.cycleName.replace(/\s/g,'_') + '.csv';
+  try { a.click(); } catch(e) {}
+  URL.revokeObjectURL(url);
+  showToast('CSV gerado!');
+}
+
+function setupPin() {
+  var pin = document.getElementById('new-pin').value;
+  var conf = document.getElementById('confirm-pin').value;
+  if (!pin || pin.length < 4) { showToast('Senha precisa ter 4+ caracteres'); return; }
+  if (pin !== conf) { showToast('Senhas não coincidem'); return; }
+  state.adminPin = pin;
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'updateConfig', key: 'adminPin', value: pin });
+  state.adminAuth = true; state.view = 'admin';
+  closeModal(); render();
+  showToast('Senha criada!');
+}
+
+function checkPin() {
+  var pin = document.getElementById('admin-pin').value;
+  if (pin === state.adminPin) {
+    state.adminAuth = true; state.view = 'admin';
+    closeModal(); render();
+  } else { showToast('Senha incorreta'); }
+}
+
+function changeAdminPin() {
+  openModal(
+    '<h2>Alterar senha <button class="modal-close" data-action="close-modal">✕</button></h2>' +
+    '<div class="form-group"><label>Senha atual</label><input id="old-pin" type="password" /></div>' +
+    '<div class="form-group"><label>Nova senha</label><input id="new-pin2" type="password" /></div>' +
+    '<button class="btn btn-primary btn-full" data-action="confirm-change-pin">Alterar</button>');
+}
+
+function confirmChangePin() {
+  var oldPin = document.getElementById('old-pin').value;
+  var newPin = document.getElementById('new-pin2').value;
+  if (oldPin !== state.adminPin) { showToast('Senha atual incorreta'); return; }
+  if (!newPin || newPin.length < 4) { showToast('Nova senha: 4+ caracteres'); return; }
+  state.adminPin = newPin;
+  saveLocal();
+  if (state.apiOnline) apiPost({ action: 'updateConfig', key: 'adminPin', value: newPin });
+  closeModal(); showToast('Senha alterada!');
+}
+
+// ===== INIT =====
+loadLocal();
+render();
+loadFromApi();
+</script>
+</body>
+</html>
