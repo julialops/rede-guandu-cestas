@@ -170,8 +170,8 @@ var BASKET_TYPES = [
   { id: 'pequena', name: 'Cesta Pequena', items: 5, price: 39, desc: '5 itens da Cooperflora' },
   { id: 'grande', name: 'Cesta Grande', items: 8, price: 51, desc: '8 itens da Cooperflora' },
   { id: 'monte', name: 'Monte sua Cesta', items: 0, price: 6, desc: 'R$ 6,00 por item' },
-  { id: 'promo2p', name: '2 Cestas Pequenas', items: 10, price: 66, desc: 'De R$ 78 por R$ 66' },
-  { id: 'promo2g', name: '2 Cestas Grandes', items: 16, price: 90, desc: 'De R$ 102 por R$ 90' },
+  { id: 'promo2p', name: '2 Cestas Pequenas', items: 5, price: 66, desc: 'De R$ 78 por R$ 66 — mesmos itens nas duas' },
+  { id: 'promo2g', name: '2 Cestas Grandes', items: 8, price: 90, desc: 'De R$ 102 por R$ 90 — mesmos itens nas duas' },
 ];
 
 var DEFAULT_PRODUCERS = [
@@ -443,7 +443,7 @@ function renderProductCatalog() {
   var html = '<div class="card" style="background:var(--green-100);border-color:var(--green-200)">' +
     '<h2 style="color:var(--green-900)">2. Escolha seus produtos</h2>' +
     '<p style="color:var(--green-700);font-size:14px;margin-bottom:14px">' +
-      (bt ? (isCooperflora ? 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta. Os demais produtos são avulsos.' : 'Monte sua cesta escolhendo os itens que quiser. Cada item Cooperflora sai por R$ 6. Os demais produtos são avulsos.') : 'Selecione um tipo de cesta acima para começar.') +
+      (bt ? (bt.id === 'monte' ? 'Monte sua cesta escolhendo os itens que quiser. Cada item Cooperflora sai por R$ 6. Os demais produtos são avulsos.' : (bt.id === 'promo2p' || bt.id === 'promo2g' ? 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta — você recebe duas iguais! Os demais produtos são avulsos.' : 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta. Os demais produtos são avulsos.')) : 'Selecione um tipo de cesta acima para começar.') +
     '</p>';
   if (state.basket) {
     for (var i = 0; i < state.producers.length; i++) {
