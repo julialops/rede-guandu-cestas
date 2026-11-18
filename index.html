@@ -232,6 +232,8 @@ var state = {
   view: 'consumer',
   adminTab: 'pedidos',
   basket: null,
+  promoNumber: null, // 1 or 2 — qual cesta da promoção
+  surpriseBasket: false, // cesta surpresa — Cooperflora escolhe
   cart: {},
   openProducers: {},
   cycleOpen: true,
@@ -380,7 +382,7 @@ function render() {
     return;
   }
   app.innerHTML = renderHeader() + '<div class="main">' + (state.view === 'consumer' ? renderConsumer() : renderAdmin()) + '</div>';
-  if (state.view === 'consumer' && getCartItemCount() > 0) {
+  if (state.view === 'consumer' && (getCartItemCount() > 0 || (state.basket && state.surpriseBasket))) {
     app.innerHTML += renderCartFloating();
   }
 }
@@ -438,15 +440,59 @@ function renderBasketSelector() {
 
 function renderProductCatalog() {
   var bt = state.basket ? BASKET_TYPES.find(function(b) { return b.id === state.basket; }) : null;
-  var isCooperflora = bt && (bt.id !== 'monte');
+  var isPromo = bt && (bt.id === 'promo2p' || bt.id === 'promo2g');
   var cestaTxt = bt ? bt.items : 0;
-  var html = '<div class="card" style="background:var(--green-100);border-color:var(--green-200)">' +
-    '<h2 style="color:var(--green-900)">2. Escolha seus produtos</h2>' +
-    '<p style="color:var(--green-700);font-size:14px;margin-bottom:14px">' +
-      (bt ? (bt.id === 'monte' ? 'Monte sua cesta escolhendo os itens que quiser. Cada item Cooperflora sai por R$ 6. Os demais produtos são avulsos.' : (bt.id === 'promo2p' || bt.id === 'promo2g' ? 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta — você recebe duas iguais! Os demais produtos são avulsos.' : 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta. Os demais produtos são avulsos.')) : 'Selecione um tipo de cesta acima para começar.') +
+  var html = '<div class="card" style="background:var(--green-100);border-color:var(--green-200)">';
+
+  // ---- Seletor 1ª ou 2ª cesta (promoções) ----
+  if (isPromo) {
+    html += '<h2 style="color:var(--green-900)">2. Qual cesta da promoção?</h2>' +
+      '<p style="color:var(--green-700);font-size:14px;margin-bottom:12px">Indique se esta é a <strong>primeira</strong> ou <strong>segunda</strong> cesta da sua promoção.</p>' +
+      '<div style="display:flex;gap:10px;margin-bottom:16px">' +
+        '<button class="basket-opt ' + (state.promoNumber===1?'selected':'') + '" style="flex:1" data-action="select-promo-number" data-num="1">' +
+          '<div class="name">1ª Cesta</div><div class="desc">Primeira entrega da promoção</div>' +
+        '</button>' +
+        '<button class="basket-opt ' + (state.promoNumber===2?'selected':'') + '" style="flex:1" data-action="select-promo-number" data-num="2">' +
+          '<div class="name">2ª Cesta</div><div class="desc">Segunda entrega da promoção</div>' +
+        '</button>' +
+      '</div>';
+    if (!state.promoNumber) {
+      html += '<p style="color:var(--stone-500);font-size:13px;text-align:center">Selecione acima para continuar.</p></div>';
+      return html;
+    }
+  }
+
+  // ---- Título e instrução ----
+  html += '<h2 style="color:var(--green-900)">' + (isPromo ? '3' : '2') + '. Escolha seus produtos</h2>';
+
+  // ---- Opção cesta surpresa (exceto monte sua cesta) ----
+  if (bt && bt.id !== 'monte') {
+    var surpriseMsg = state.surpriseBasket
+      ? 'A Cooperflora vai montar sua cesta com os melhores itens da semana!'
+      : 'Prefere que a Cooperflora escolha os itens por você?';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:' + (state.surpriseBasket ? 'var(--amber-100)' : 'var(--green-50)') + ';border-radius:8px;margin-bottom:14px;cursor:pointer" data-action="toggle-surprise">' +
+      '<div style="width:20px;height:20px;border-radius:4px;border:2px solid ' + (state.surpriseBasket ? 'var(--amber-600)' : 'var(--stone-300)') + ';background:' + (state.surpriseBasket ? 'var(--amber-500)' : 'white') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+        (state.surpriseBasket ? '<span style="color:white;font-size:14px;font-weight:700">✓</span>' : '') +
+      '</div>' +
+      '<div><div style="font-size:14px;font-weight:600;color:' + (state.surpriseBasket ? 'var(--amber-600)' : 'var(--stone-700)') + '">🎁 Cesta Surpresa</div>' +
+      '<div style="font-size:12px;color:var(--stone-500)">' + surpriseMsg + '</div></div>' +
+    '</div>';
+  }
+
+  // ---- Texto explicativo ----
+  if (!state.surpriseBasket) {
+    html += '<p style="color:var(--green-700);font-size:14px;margin-bottom:14px">' +
+      (bt ? (bt.id === 'monte' ? 'Monte sua cesta escolhendo os itens que quiser. Cada item Cooperflora sai por R$ 6. Os demais produtos são avulsos.' : (isPromo ? 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta — você recebe duas iguais! Os demais produtos são avulsos.' : 'Escolha <strong>' + cestaTxt + ' itens da Cooperflora</strong> para sua cesta. Os demais produtos são avulsos.')) : 'Selecione um tipo de cesta acima para começar.') +
     '</p>';
+  } else {
+    html += '<p style="color:var(--amber-600);font-size:14px;margin-bottom:14px">Os itens da Cooperflora serão escolhidos pela equipe. Você ainda pode adicionar produtos avulsos dos outros produtores abaixo.</p>';
+  }
+
+  // ---- Produtos ----
   if (state.basket) {
     for (var i = 0; i < state.producers.length; i++) {
+      // Se cesta surpresa, esconde Cooperflora
+      if (state.surpriseBasket && state.producers[i].id === 'cooperflora') continue;
       html += renderProducerSection(state.producers[i]);
     }
   }
@@ -505,9 +551,13 @@ function openCartModal() {
       '<div style="font-weight:600">' + fmt(prod.price*qty) + '</div>' +
     '</div>';
   }
-  if (!items) items = '<div class="empty"><p>Seu pedido está vazio</p></div>';
+  if (!items && !state.surpriseBasket) items = '<div class="empty"><p>Seu pedido está vazio</p></div>';
   var bt = BASKET_TYPES.find(function(b) { return b.id === state.basket; });
   var basketLabel = bt ? bt.name + ' — ' + fmt(bt.price) : '';
+  if (state.promoNumber) basketLabel += ' (' + state.promoNumber + 'ª cesta)';
+  if (state.surpriseBasket) {
+    items = '<div style="padding:12px;background:var(--amber-100);border-radius:8px;margin-bottom:8px;font-size:13px;text-align:center"><strong>🎁 Cesta Surpresa</strong><br>Itens da Cooperflora escolhidos pela equipe</div>' + items;
+  }
   openModal(
     '<h2>Seu Pedido <button class="modal-close" data-action="close-modal">✕</button></h2>' +
     (bt ? '<div style="padding:8px 12px;background:var(--green-50);border-radius:8px;margin-bottom:12px;font-size:13px;"><strong>Cesta:</strong> ' + basketLabel + '</div>' : '') +
@@ -536,9 +586,15 @@ function submitOrder() {
     var producer = findProducerOfProduct(pid);
     if (prod) items.push({ productId: pid, name: prod.name, price: prod.price, qty: qty, producer: producer ? producer.name : '' });
   }
+  var btInfo = BASKET_TYPES.find(function(b) { return b.id === state.basket; }) || {};
+  var basketLabel = btInfo.name || '';
+  if (state.promoNumber) basketLabel += ' — ' + state.promoNumber + 'ª cesta';
+  if (state.surpriseBasket) basketLabel += ' (Surpresa)';
   var order = {
     id: genId(), date: new Date().toISOString(), customerName: name, customerPhone: phone,
-    basket: state.basket, basketName: (BASKET_TYPES.find(function(b) { return b.id === state.basket; }) || {}).name || '',
+    basket: state.basket, basketName: basketLabel,
+    promoNumber: state.promoNumber || null,
+    surpriseBasket: state.surpriseBasket || false,
     items: items, total: getCartTotal(),
   };
 
@@ -553,6 +609,8 @@ function submitOrder() {
 
   state.cart = {};
   state.basket = null;
+  state.promoNumber = null;
+  state.surpriseBasket = false;
   closeModal();
   render();
   showToast('Pedido enviado com sucesso!');
@@ -618,7 +676,9 @@ function renderAdminOrders() {
     html += '<div class="order-card">' +
       '<div class="order-header"><div><div class="customer-name">' + order.customerName + '</div><div style="font-size:12px;color:var(--stone-400)">' + order.customerPhone + ' · ' + date + '</div></div>' +
       '<div class="order-total">' + fmt(order.total) + '</div></div>' +
-      '<div style="font-size:12px;color:var(--green-700);margin-bottom:4px;font-weight:500">' + (order.basketName||'Avulso') + '</div>' +
+      '<div style="font-size:12px;color:var(--green-700);margin-bottom:4px;font-weight:500">' + (order.basketName||'Avulso') +
+        (order.surpriseBasket ? ' <span style="background:var(--amber-100);color:var(--amber-600);padding:1px 6px;border-radius:4px;font-size:11px">🎁 Surpresa</span>' : '') +
+      '</div>' +
       '<div class="order-items">' + itemsStr + '</div>' +
       '<div style="margin-top:8px;text-align:right"><button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" data-action="delete-order" data-order-id="' + order.id + '">Remover</button></div>' +
     '</div>';
@@ -738,7 +798,22 @@ document.addEventListener('click', function(e) {
     case 'enter-admin':
       enterAdmin(); break;
     case 'select-basket':
-      state.basket = target.getAttribute('data-basket'); render(); break;
+      state.basket = target.getAttribute('data-basket');
+      state.promoNumber = null;
+      state.surpriseBasket = false;
+      state.cart = {};
+      render(); break;
+    case 'select-promo-number':
+      state.promoNumber = parseInt(target.getAttribute('data-num'));
+      render(); break;
+    case 'toggle-surprise':
+      state.surpriseBasket = !state.surpriseBasket;
+      // Limpa itens Cooperflora do carrinho se ativar surpresa
+      if (state.surpriseBasket) {
+        var cp = state.producers.find(function(p) { return p.id === 'cooperflora'; });
+        if (cp) { for (var si = 0; si < cp.products.length; si++) delete state.cart[cp.products[si].id]; }
+      }
+      render(); break;
     case 'toggle-producer':
       var pid = target.getAttribute('data-producer');
       state.openProducers[pid] = state.openProducers[pid] === false ? true : false;
@@ -886,12 +961,14 @@ function removeProduct(producerId, productId) {
 
 function exportOrders() {
   if (state.orders.length === 0) { showToast('Nenhum pedido'); return; }
-  var csv = 'Nome,Telefone,Data,Cesta,Itens,Total\n';
+  var csv = 'Nome,Telefone,Data,Cesta,Promo Nº,Surpresa,Itens,Total\n';
   for (var i = 0; i < state.orders.length; i++) {
     var o = state.orders[i];
     var date = new Date(o.date).toLocaleDateString('pt-BR');
     var items = o.items.map(function(it) { return it.name + ' x' + it.qty; }).join('; ');
-    csv += '"' + o.customerName + '","' + o.customerPhone + '","' + date + '","' + o.basketName + '","' + items + '","' + o.total.toFixed(2) + '"\n';
+    var promoNum = o.promoNumber ? o.promoNumber + 'ª' : '';
+    var surprise = o.surpriseBasket ? 'Sim' : '';
+    csv += '"' + o.customerName + '","' + o.customerPhone + '","' + date + '","' + o.basketName + '","' + promoNum + '","' + surprise + '","' + items + '","' + o.total.toFixed(2) + '"\n';
   }
   var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   var url = URL.createObjectURL(blob);
